@@ -1,0 +1,33 @@
+# IoT device
+
+from dnn import DNNModel, InferenceTask
+
+class IoTDevice:
+    def __init__(self, edge_servers:list, dnn_model:DNNModel, k:float):
+        self.edge_servers = edge_servers
+        self.dnn_model = dnn_model
+        self.k = k
+
+    def run_inference_task(self, task:InferenceTask):
+        energy = self.k * task.cycles
+        print("Inference Task Executed on <%s> (Accuracy: %d, Energy: %f)" % (self, self.dnn_model.accuracy, energy))
+        return (self.dnn_model.accuracy, energy)
+    
+    def __str__(self):
+        return "IoT Device"
+
+class EdgeServer:
+    count = 0
+    def __init__(self, iot_device:IoTDevice, dnn_model:DNNModel, G_t:float):
+        self.iot_device = iot_device
+        self.dnn_model = dnn_model
+        self.G_t = G_t
+        EdgeServer.count += 1
+
+    def run_inference_task(self, task:InferenceTask):
+        energy = self.G_t * task.size
+        print("Inference Task Executed on <%s> (Accuracy: %d, Energy: %f)" % (self, self.dnn_model.accuracy, energy))
+        return (self.dnn_model.accuracy, self.G_t * task.size)
+    
+    def __str__(self):
+        return "Edge Device #%d" % EdgeServer.count
