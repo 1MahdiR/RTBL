@@ -12,6 +12,8 @@ class IoTDevice:
         self.reliability = uniform(0.8, 0.999)
         self.h_observations = []
         self.observations = []
+        self.mean_r_j = 0
+        self.emp_r_j = 0
 
     def run_inference_task(self, task:InferenceTask):
         energy = self.k * task.cycles
@@ -34,6 +36,8 @@ class EdgeServer:
         self.h_observations = []
         self.observations = []
         self.id = EdgeServer.count
+        self.mean_r_j = 0
+        self.emp_r_j = 0
         EdgeServer.count += 1
 
     def run_inference_task(self, task:InferenceTask):

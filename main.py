@@ -1,5 +1,5 @@
 
-from random import randint, random
+from random import randint, random, shuffle
 
 from iot import IoTDevice, EdgeServer
 from dnn import InferenceTask, DNNModel
@@ -30,13 +30,11 @@ class System:
             #num_of_devices = randint(1, 2)
 
             devices = []
-            used_devices = []
+            _devices = list(range(1 + len(System.iot_device.edge_servers)))
+            shuffle(_devices)
             for i in range(num_of_devices):
-                device = randint(0, len(System.iot_device.edge_servers))
-                while device in devices:
-                    device = randint(0, len(System.iot_device.edge_servers))
-                
-                used_devices.append(device)
+                device = _devices.pop()
+
                 if device == 0:
                     devices.append(System.iot_device)
                 else:
@@ -48,14 +46,18 @@ class System:
                 if isinstance(device, IoTDevice):
                     if random() <= device.reliability:
                         result = device.run_inference_task(inference_task)
+                        device.observations.append(1)
                     else:
                         print("Inference Task #%s Failed on <%s>" % (inference_task.id, device))
+                        device.observations.append(0)
                         result = (0, 0)
                 else:
                     if random() <= device.reliability:
                         result = device.run_inference_task(inference_task)
+                        device.observations.append(1)
                     else:
                         print("Inference Task #%s Failed on <%s>" % (inference_task.id, device))
+                        device.observations.append(0)
                         result = (0, 0)
                 e_sum += result[1]
                 if result[0] > a_max:
@@ -73,6 +75,12 @@ class System:
     def run_system_rtbl():
         E_ = 0
         A_ = 0
+        System.iot_device.mean_r_j = sum(System.iot_device.h_observations) / len(System.iot_device.h_observations)
+        #print(System.iot_device.mean_r_j)
+        for device in System.iot_device.edge_servers:
+            device.mean_r_j = sum(device.h_observations) / len(device.h_observations)
+            #print(device.mean_r_j)
+
         for i in range(System.time_slots):
             inference_task = InferenceTask(randint(MIN_TASK_SIZE, MAX_TASK_SIZE), randint(MIN_TASK_CYCLE, MAX_TASK_CYCLE))
 
@@ -80,13 +88,11 @@ class System:
             #num_of_devices = randint(1, 2)
 
             devices = []
-            used_devices = []
+            _devices = list(range(1 + len(System.iot_device.edge_servers)))
+            shuffle(_devices)
             for i in range(num_of_devices):
-                device = randint(0, len(System.iot_device.edge_servers))
-                while device in devices:
-                    device = randint(0, len(System.iot_device.edge_servers))
-                
-                used_devices.append(device)
+                device = _devices.pop()
+
                 if device == 0:
                     devices.append(System.iot_device)
                 else:
@@ -98,14 +104,18 @@ class System:
                 if isinstance(device, IoTDevice):
                     if random() <= device.reliability:
                         result = device.run_inference_task(inference_task)
+                        device.observations.append(1)
                     else:
                         print("Inference Task #%s Failed on <%s>" % (inference_task.id, device))
+                        device.observations.append(0)
                         result = (0, 0)
                 else:
                     if random() <= device.reliability:
                         result = device.run_inference_task(inference_task)
+                        device.observations.append(1)
                     else:
                         print("Inference Task #%s Failed on <%s>" % (inference_task.id, device))
+                        device.observations.append(0)
                         result = (0, 0)
                 e_sum += result[1]
                 if result[0] > a_max:
@@ -138,6 +148,11 @@ if __name__ == "__main__":
     es3.iot_device = System.iot_device
 
     for i in range(10):
+        if random() <= System.iot_device.reliability:
+            System.iot_device.h_observations.append(1)
+        else:
+            System.iot_device.h_observations.append(0)
+
         if random() <= es1.reliability:
             es1.h_observations.append(1)
         else:
@@ -153,6 +168,7 @@ if __name__ == "__main__":
         else:
             es3.h_observations.append(0)
 
+    print(System.iot_device.h_observations, System.iot_device.reliability)
     print(es1.h_observations, es1.reliability)
     print(es2.h_observations, es2.reliability)
     print(es3.h_observations, es3.reliability)
@@ -163,4 +179,9 @@ if __name__ == "__main__":
 
     E_bug = 60
 
-    System.run_system_random()
+    System.run_system_rtbl()
+
+    print(System.iot_device.observations, System.iot_device.reliability)
+    print(es1.observations, es1.reliability)
+    print(es2.observations, es2.reliability)
+    print(es3.observations, es3.reliability)
