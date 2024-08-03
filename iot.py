@@ -1,5 +1,7 @@
 # IoT device
 
+from random import uniform
+
 from dnn import DNNModel, InferenceTask
 
 class IoTDevice:
@@ -7,6 +9,8 @@ class IoTDevice:
         self.edge_servers = edge_servers
         self.dnn_model = dnn_model
         self.k = k
+        self.reliability = uniform(0.8, 0.999)
+        self.observations = []
 
     def run_inference_task(self, task:InferenceTask):
         energy = self.k * task.cycles
@@ -22,6 +26,9 @@ class EdgeServer:
         self.iot_device = iot_device
         self.dnn_model = dnn_model
         self.G_t = G_t
+        self.reliability = uniform(0.6, 0.9)
+        self.observations = []
+        self.id = EdgeServer.count
         EdgeServer.count += 1
 
     def run_inference_task(self, task:InferenceTask):
@@ -30,4 +37,4 @@ class EdgeServer:
         return (self.dnn_model.accuracy, self.G_t * task.size)
     
     def __str__(self):
-        return "Edge Device #%d" % EdgeServer.count
+        return "Edge Device #%d" % self.id
