@@ -10,6 +10,7 @@ class IoTDevice:
         self.dnn_model = dnn_model
         self.k = k
         self.reliability = uniform(0.8, 0.999)
+        self.h_observations = []
         self.observations = []
 
     def run_inference_task(self, task:InferenceTask):
@@ -30,6 +31,7 @@ class EdgeServer:
         self.dnn_model = dnn_model
         self.G_t = G_t
         self.reliability = uniform(0.6, 0.9)
+        self.h_observations = []
         self.observations = []
         self.id = EdgeServer.count
         EdgeServer.count += 1
