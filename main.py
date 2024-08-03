@@ -4,10 +4,10 @@ from random import randint
 from iot import IoTDevice, EdgeServer
 from dnn import InferenceTask, DNNModel
 
-MAX_TASK_SIZE = 10
-MIN_TASK_SIZE = 5
-MAX_TASK_CYCLE = 10
-MIN_TASK_CYCLE = 5
+MAX_TASK_SIZE = 10000
+MIN_TASK_SIZE = 5000
+MAX_TASK_CYCLE = 0.2 * 10 ** 9
+MIN_TASK_CYCLE = 0.15 * 10 ** 9
 
 class System:
     iot_device = None
@@ -32,7 +32,9 @@ class System:
             E_ += result[1]
         
         acc = A_/System.time_slots
-        print((acc, E_))
+        print("Workload finished!")
+        print("Average accuracy: %f" % acc)
+        print("Total energy consumption: %f" % E_)
         return (acc, E_)
     
     def run_system_random():
@@ -51,10 +53,28 @@ class System:
             E_ += result[1]
         
         acc = A_/System.time_slots
-        print((acc, E_))
+        print("Workload finished!")
+        print("Average accuracy: %f" % acc)
+        print("Total energy consumption: %f" % E_)
         return (acc, E_)
+    
+    def run_system_random_edge_only():
+        E_ = 0
+        A_ = 0
+        for i in range(System.time_slots):
+            inference_task = InferenceTask(randint(MIN_TASK_SIZE, MAX_TASK_SIZE), randint(MIN_TASK_CYCLE, MAX_TASK_CYCLE))
+            device = randint(0, len(System.iot_device.edge_servers)-1)
 
+            result = System.iot_device.edge_servers[device].run_inference_task(inference_task)
             
+            A_ += result[0]
+            E_ += result[1]
+        
+        acc = A_/System.time_slots
+        print("Workload finished!")
+        print("Average accuracy: %f" % acc)
+        print("Total energy consumption: %f" % E_)
+        return (acc, E_)
 
 if __name__ == "__main__":
 
@@ -64,8 +84,8 @@ if __name__ == "__main__":
     edge_dnn_3 = DNNModel(88)
 
     es1 = EdgeServer(None, edge_dnn_1, 10)
-    es2 = EdgeServer(None, edge_dnn_1, 5)
-    es3 = EdgeServer(None, edge_dnn_1, 9)
+    es2 = EdgeServer(None, edge_dnn_2, 5)
+    es3 = EdgeServer(None, edge_dnn_3, 9)
 
     System.iot_device = IoTDevice([es1, es2, es3], iot_dnn, 3)
 
