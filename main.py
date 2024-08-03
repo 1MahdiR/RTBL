@@ -11,8 +11,6 @@ MIN_TASK_CYCLE = 5
 
 class System:
     iot_device = None
-    edge_servers = list()
-
     time_slots = None
 
     V = None
@@ -22,11 +20,40 @@ class System:
     R_h = list()
     H = list()
 
-    def run_system():
+    def run_system_local():
+        E_ = 0
+        A_ = 0
         for i in range(System.time_slots):
             inference_task = InferenceTask(randint(MIN_TASK_SIZE, MAX_TASK_SIZE), randint(MIN_TASK_CYCLE, MAX_TASK_CYCLE))
 
-            System.iot_device.run_inference_task(inference_task)
+            result = System.iot_device.run_inference_task(inference_task)
+
+            A_ += result[0]
+            E_ += result[1]
+        
+        acc = A_/System.time_slots
+        print((acc, E_))
+        return (acc, E_)
+    
+    def run_system_random():
+        E_ = 0
+        A_ = 0
+        for i in range(System.time_slots):
+            inference_task = InferenceTask(randint(MIN_TASK_SIZE, MAX_TASK_SIZE), randint(MIN_TASK_CYCLE, MAX_TASK_CYCLE))
+            device = randint(0, len(System.iot_device.edge_servers))
+
+            if device == 0:
+                result = System.iot_device.run_inference_task(inference_task)
+            else:
+                result = System.iot_device.edge_servers[device-1].run_inference_task(inference_task)
+            
+            A_ += result[0]
+            E_ += result[1]
+        
+        acc = A_/System.time_slots
+        print((acc, E_))
+        return (acc, E_)
+
             
 
 if __name__ == "__main__":
@@ -40,7 +67,7 @@ if __name__ == "__main__":
     es2 = EdgeServer(None, edge_dnn_1, 5)
     es3 = EdgeServer(None, edge_dnn_1, 9)
 
-    System.iot_device = IoTDevice([es1, es2, es3], iot_dnn, 1)
+    System.iot_device = IoTDevice([es1, es2, es3], iot_dnn, 3)
 
     es1.iot_device = System.iot_device
     es2.iot_device = System.iot_device
@@ -52,4 +79,4 @@ if __name__ == "__main__":
 
     E_bug = 60
 
-    System.run_system()
+    System.run_system_random()
