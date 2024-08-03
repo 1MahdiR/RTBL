@@ -14,7 +14,7 @@ class IoTDevice:
 
     def run_inference_task(self, task:InferenceTask):
         energy = self.k * task.cycles
-        print("Inference Task Executed on <%s> (Accuracy: %d, Energy: %f)" % (self, self.dnn_model.accuracy, energy))
+        print("Inference Task #%s Executed on <%s> (Accuracy: %d, Energy: %f)" % (task.id, self, self.dnn_model.accuracy, energy))
         return (self.dnn_model.accuracy, energy)
     
     def __str__(self):
@@ -36,7 +36,7 @@ class EdgeServer:
 
     def run_inference_task(self, task:InferenceTask):
         energy = self.G_t * task.size
-        print("Inference Task Executed on <%s> (Accuracy: %d, Energy: %f)" % (self, self.dnn_model.accuracy, energy))
+        print("Inference Task #%s Executed on <%s> (Accuracy: %d, Energy: %f)" % (task.id, self, self.dnn_model.accuracy, energy))
         return (self.dnn_model.accuracy, self.G_t * task.size)
     
     def __str__(self):
