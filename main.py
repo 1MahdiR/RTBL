@@ -1,5 +1,5 @@
 
-from random import randint
+from random import randint, random
 
 from iot import IoTDevice, EdgeServer
 from dnn import InferenceTask, DNNModel
@@ -26,7 +26,11 @@ class System:
         for i in range(System.time_slots):
             inference_task = InferenceTask(randint(MIN_TASK_SIZE, MAX_TASK_SIZE), randint(MIN_TASK_CYCLE, MAX_TASK_CYCLE))
 
-            result = System.iot_device.run_inference_task(inference_task)
+            if random() <= System.iot_device.reliability:
+                result = System.iot_device.run_inference_task(inference_task)
+            else:
+                print("Inference Task Failed on <%s>" % System.iot_device)
+                result = (0, 0)
 
             A_ += result[0]
             E_ += result[1]
@@ -45,9 +49,20 @@ class System:
             device = randint(0, len(System.iot_device.edge_servers))
 
             if device == 0:
-                result = System.iot_device.run_inference_task(inference_task)
+                if random() <= System.iot_device.reliability:
+                    result = System.iot_device.run_inference_task(inference_task)
+                else:
+                    print("Inference Task Failed on <%s>" % System.iot_device)
+                    result = (0, 0)
             else:
-                result = System.iot_device.edge_servers[device-1].run_inference_task(inference_task)
+                edge_device = System.iot_device.edge_servers[device-1]
+
+                if random() <= edge_device.reliability:
+                    result = edge_device.run_inference_task(inference_task)
+                else:
+                    print("Inference Task Failed on <%s>" % edge_device)
+                    result = (0, 0)
+                    
             
             A_ += result[0]
             E_ += result[1]
@@ -65,7 +80,13 @@ class System:
             inference_task = InferenceTask(randint(MIN_TASK_SIZE, MAX_TASK_SIZE), randint(MIN_TASK_CYCLE, MAX_TASK_CYCLE))
             device = randint(0, len(System.iot_device.edge_servers)-1)
 
-            result = System.iot_device.edge_servers[device].run_inference_task(inference_task)
+            edge_device = System.iot_device.edge_servers[device-1]
+
+            if random() <= edge_device.reliability:
+                result = edge_device.run_inference_task(inference_task)
+            else:
+                print("Inference Task Failed on <%s>" % edge_device)
+                result = (0, 0)
             
             A_ += result[0]
             E_ += result[1]
