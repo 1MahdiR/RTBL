@@ -19,6 +19,9 @@ class IoTDevice:
     
     def __str__(self):
         return "IoT Device"
+    
+    def __repr__(self):
+        return self.__str__()
 
 class EdgeServer:
     count = 0
@@ -38,3 +41,6 @@ class EdgeServer:
     
     def __str__(self):
         return "Edge Device #%d" % self.id
+    
+    def __repr__(self):
+        return self.__str__()
