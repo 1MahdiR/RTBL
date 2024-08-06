@@ -4,6 +4,7 @@ from math import log10
 
 from iot import IoTDevice, EdgeServer
 from dnn import InferenceTask, DNNModel
+from bcolor import *
 
 MAX_TASK_SIZE = 100
 MIN_TASK_SIZE = 50
@@ -14,7 +15,7 @@ class System:
     iot_device = None
     time_slots = None
 
-    V = 1000000000
+    V = 10000000
 
     E_bug = 100000
 
@@ -49,7 +50,7 @@ class System:
                         result = device.run_inference_task(inference_task)
                         device.observations.append(1)
                     else:
-                        print("Inference Task #%s Failed on <%s>" % (inference_task.id, device))
+                        print((FAIL + "Inference Task #%s Failed on <%s>" + ENDC) % (inference_task.id, device))
                         device.observations.append(0)
                         result = (0, 0)
                 else:
@@ -57,7 +58,7 @@ class System:
                         result = device.run_inference_task(inference_task)
                         device.observations.append(1)
                     else:
-                        print("Inference Task #%s Failed on <%s>" % (inference_task.id, device))
+                        print((FAIL + "Inference Task #%s Failed on <%s>" + ENDC) % (inference_task.id, device))
                         device.observations.append(0)
                         result = (0, 0)
                 e_sum += result[1]
@@ -183,7 +184,7 @@ class System:
                         result = device.run_inference_task(inference_task)
                         device.observations.append(1)
                     else:
-                        print("Inference Task #%s Failed on <%s>" % (inference_task.id, device))
+                        print((FAIL + "Inference Task #%s Failed on <%s>" + ENDC) % (inference_task.id, device))
                         device.observations.append(0)
                         failed_devices.append(device)
                         result = (0, 0)
@@ -192,7 +193,7 @@ class System:
                         result = device.run_inference_task(inference_task)
                         device.observations.append(1)
                     else:
-                        print("Inference Task #%s Failed on <%s>" % (inference_task.id, device))
+                        print((FAIL + "Inference Task #%s Failed on <%s>" + ENDC) % (inference_task.id, device))
                         device.observations.append(0)
                         failed_devices.append(device)
                         result = (0, 0)
@@ -217,10 +218,13 @@ class System:
             E_ += e_sum
         
         acc = A_/System.time_slots
-        print("Workload finished!")
+        print(OKGREEN + BOLD + "Workload finished!" + ENDC)
+        print("\n---\n")
+        print(OKGREEN + BOLD + "Stats:" + ENDC)
         print("Average accuracy: %f" % acc)
         print("Total energy consumption: %f" % E_)
-        print("Virtual Queue:", V_Q)
+        print("Virtual queue:", "[ " + ", ".join([ OKGREEN + str(x) + ENDC if x == 1 else FAIL + str(x) + ENDC for x in V_Q ]) + " ]")
+        print()
         return (acc, E_)
 
 if __name__ == "__main__":
@@ -261,16 +265,22 @@ if __name__ == "__main__":
         else:
             es3.h_observations.append(0)
 
-    print(System.iot_device.h_observations, System.iot_device.reliability)
-    print(es1.h_observations, es1.reliability)
-    print(es2.h_observations, es2.reliability)
-    print(es3.h_observations, es3.reliability)
+    print(OKBLUE + BOLD + "Historical observations:" + ENDC)
+    print(OKBLUE + str(System.iot_device) + ":" + ENDC, System.iot_device.h_observations)
+    print(OKBLUE + str(es1) + ":" + ENDC, es1.h_observations)
+    print(OKBLUE + str(es2) + ":" + ENDC, es2.h_observations)
+    print(OKBLUE + str(es3) + ":" + ENDC, es3.h_observations)
+    print("\n---\n")
 
     System.time_slots = 20
 
+    print(WARNING + BOLD + "Simulation starts:" + ENDC)
     System.run_system_rtbl()
 
-    print(System.iot_device.observations, System.iot_device.reliability)
-    print(es1.observations, es1.reliability)
-    print(es2.observations, es2.reliability)
-    print(es3.observations, es3.reliability)
+    print(OKBLUE + BOLD + "Observations:" + ENDC)
+    print(OKBLUE + str(System.iot_device) + " (Real reliability:{:.4f}):".format(System.iot_device.reliability) + ENDC, System.iot_device.observations)
+    print(OKBLUE + str(es1) + " (Real reliability:{:.4f}):".format(es1.reliability) + ENDC, es1.observations)
+    print(OKBLUE + str(es2) + " (Real reliability:{:.4f}):".format(es2.reliability) + ENDC, es2.observations)
+    print(OKBLUE + str(es3) + " (Real reliability:{:.4f}):".format(es3.reliability) + ENDC, es3.observations)
+
+    print(WARNING + BOLD + "Simulation ends!" + ENDC)
