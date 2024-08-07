@@ -5,19 +5,15 @@ from math import log10
 from iot import IoTDevice, EdgeServer
 from dnn import InferenceTask, DNNModel
 from bcolor import *
-
-MAX_TASK_SIZE = 100
-MIN_TASK_SIZE = 50
-MAX_TASK_CYCLE = 0.2 * 10 ** 6
-MIN_TASK_CYCLE = 0.15 * 10 ** 6
+from config import *
 
 class System:
     iot_device = None
-    time_slots = None
+    time_slots = NUMBER_OF_TIME_SLOTS
 
-    V = 10000000
+    V = V_CONSTANT
 
-    E_bug = 100000
+    E_bug = ENERGY_BUDGET
 
     R_h = list()
     H = list()
@@ -29,7 +25,6 @@ class System:
             inference_task = InferenceTask(randint(MIN_TASK_SIZE, MAX_TASK_SIZE), randint(MIN_TASK_CYCLE, MAX_TASK_CYCLE))
 
             num_of_devices = randint(1, 1 + len(System.iot_device.edge_servers))
-            #num_of_devices = randint(1, 2)
 
             devices = []
             _devices = list(range(1 + len(System.iot_device.edge_servers)))
@@ -80,10 +75,8 @@ class System:
         E_ = 0
         A_ = 0
         System.iot_device.mean_r_j = sum(System.iot_device.h_observations) / len(System.iot_device.h_observations)
-        #print(System.iot_device.mean_r_j)
         for device in System.iot_device.edge_servers:
             device.mean_r_j = sum(device.h_observations) / len(device.h_observations)
-            #print(device.mean_r_j)
 
         for i in range(System.time_slots):
 
@@ -91,7 +84,6 @@ class System:
                 r_1 = device.mean_r_j - ((2 * log10(i+1))/(len(device.h_observations)+len([ x for x in device.observations if x == 1])))
                 r_2 = 0
                 device.emp_r_j = max(r_1, r_2)
-                #print(device.emp_r_j)
 
             inference_task = InferenceTask(randint(MIN_TASK_SIZE, MAX_TASK_SIZE), randint(MIN_TASK_CYCLE, MAX_TASK_CYCLE))
 
@@ -167,12 +159,10 @@ class System:
                 f1_1 = System.V * (max_acc_temp_temp + 1 - prod_rel_temp_temp)
                 f1_2 = System.V * (max_acc_temp + 1 - prod_rel_temp)
                 f2 = e_sum_temp
-                #print(device_max)
 
                 if f1_1 - f1_2 - f2 >= 0:
                     devices.append(device_max)
                 else:
-                    #print(f1_1 - f1_2 - f2)
                     break
                 
             e_sum = 0
@@ -229,58 +219,44 @@ class System:
 
 if __name__ == "__main__":
 
-    iot_dnn = DNNModel(60)
-    edge_dnn_1 = DNNModel(90)
-    edge_dnn_2 = DNNModel(85)
-    edge_dnn_3 = DNNModel(88)
+    iot_dnn = DNNModel(randint(MIN_DNN_ACCURACY_IOT, MAX_DNN_ACCURACY_IOT))
+    ls_edge_dnn = []
+    for i in range(NUMBER_OF_EDGE_SERVERS):
+        ls_edge_dnn.append(DNNModel(randint(MIN_DNN_ACCURACY_EDGE, MAX_DNN_ACCURACY_EDGE)))
 
-    es1 = EdgeServer(None, edge_dnn_1, 10)
-    es2 = EdgeServer(None, edge_dnn_2, 5)
-    es3 = EdgeServer(None, edge_dnn_3, 9)
+    ls_edge = []
+    for i in range(NUMBER_OF_EDGE_SERVERS):
+        ls_edge.append(EdgeServer(None, ls_edge_dnn[i], randint(MIN_EDGE_G, MAX_EDGE_G)))
+    
+    System.iot_device = IoTDevice(ls_edge, iot_dnn, randint(MIN_IOT_K, MAX_IOT_K))
 
-    System.iot_device = IoTDevice([es1, es2, es3], iot_dnn, 1)
+    for es in ls_edge:
+        es.iot_device = System.iot_device
 
-    es1.iot_device = System.iot_device
-    es2.iot_device = System.iot_device
-    es3.iot_device = System.iot_device
-
-    for i in range(10):
+    for i in range(NUMBER_OF_HISTORICAL_OBSERVATIONS):
         if random() <= System.iot_device.reliability:
             System.iot_device.h_observations.append(1)
         else:
             System.iot_device.h_observations.append(0)
 
-        if random() <= es1.reliability:
-            es1.h_observations.append(1)
-        else:
-            es1.h_observations.append(0)
-
-        if random() <= es2.reliability:
-            es2.h_observations.append(1)
-        else:
-            es2.h_observations.append(0)
-
-        if random() <= es3.reliability:
-            es3.h_observations.append(1)
-        else:
-            es3.h_observations.append(0)
+        for es in ls_edge:
+            if random() <= es.reliability:
+                es.h_observations.append(1)
+            else:
+                es.h_observations.append(0)
 
     print(OKBLUE + BOLD + "Historical observations:" + ENDC)
     print(OKBLUE + str(System.iot_device) + ":" + ENDC, System.iot_device.h_observations)
-    print(OKBLUE + str(es1) + ":" + ENDC, es1.h_observations)
-    print(OKBLUE + str(es2) + ":" + ENDC, es2.h_observations)
-    print(OKBLUE + str(es3) + ":" + ENDC, es3.h_observations)
+    for es in ls_edge:
+        print(OKBLUE + str(es) + ":" + ENDC, es.h_observations)
     print("\n---\n")
-
-    System.time_slots = 20
 
     print(WARNING + BOLD + "Simulation starts:" + ENDC)
     System.run_system_rtbl()
 
     print(OKBLUE + BOLD + "Observations:" + ENDC)
     print(OKBLUE + str(System.iot_device) + " (Real reliability:{:.4f}):".format(System.iot_device.reliability) + ENDC, System.iot_device.observations)
-    print(OKBLUE + str(es1) + " (Real reliability:{:.4f}):".format(es1.reliability) + ENDC, es1.observations)
-    print(OKBLUE + str(es2) + " (Real reliability:{:.4f}):".format(es2.reliability) + ENDC, es2.observations)
-    print(OKBLUE + str(es3) + " (Real reliability:{:.4f}):".format(es3.reliability) + ENDC, es3.observations)
+    for es in ls_edge:
+        print(OKBLUE + str(es) + " (Real reliability:{:.4f}):".format(es.reliability) + ENDC, es.observations)
 
     print(WARNING + BOLD + "Simulation ends!" + ENDC)
