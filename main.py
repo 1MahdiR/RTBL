@@ -1,5 +1,5 @@
 
-from random import randint, random, shuffle
+from random import randint, random, shuffle, uniform
 from math import log10
 
 from iot import IoTDevice, EdgeServer
@@ -226,9 +226,9 @@ if __name__ == "__main__":
 
     ls_edge = []
     for i in range(NUMBER_OF_EDGE_SERVERS):
-        ls_edge.append(EdgeServer(None, ls_edge_dnn[i], randint(MIN_EDGE_G, MAX_EDGE_G)))
+        ls_edge.append(EdgeServer(None, ls_edge_dnn[i], uniform(MIN_EDGE_G, MAX_EDGE_G)))
     
-    System.iot_device = IoTDevice(ls_edge, iot_dnn, randint(MIN_IOT_K, MAX_IOT_K))
+    System.iot_device = IoTDevice(ls_edge, iot_dnn, uniform(MIN_IOT_K, MAX_IOT_K))
 
     for es in ls_edge:
         es.iot_device = System.iot_device
@@ -244,6 +244,14 @@ if __name__ == "__main__":
                 es.h_observations.append(1)
             else:
                 es.h_observations.append(0)
+
+    print(OKBLUE + BOLD + "Devices stats:" + ENDC)
+    print(System.iot_device, "(Accuracay: %d, Energy constant: %.2f)" % (System.iot_device.dnn_model.accuracy, System.iot_device.k))
+    for es in ls_edge:
+        print(es, "(Accuracay: %d, Energy constant: %.2f)" % (es.dnn_model.accuracy, es.G_t))
+    print("\n Enter to begin simulation...\r", end="")
+    input()
+    print("\n---\n")
 
     print(OKBLUE + BOLD + "Historical observations:" + ENDC)
     print(OKBLUE + str(System.iot_device) + ":" + ENDC, System.iot_device.h_observations)
