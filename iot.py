@@ -3,13 +3,14 @@
 from random import uniform
 
 from dnn import DNNModel, InferenceTask
+from config import *
 
 class IoTDevice:
     def __init__(self, edge_servers:list, dnn_model:DNNModel, k:float):
         self.edge_servers = edge_servers
         self.dnn_model = dnn_model
         self.k = k
-        self.reliability = uniform(0.8, 0.999)
+        self.reliability = uniform(MIN_IOT_RELIABILITY, MAX_IOT_RELIABILITY)
         self.h_observations = []
         self.observations = []
         self.mean_r_j = 0
@@ -35,7 +36,7 @@ class EdgeServer:
         self.iot_device = iot_device
         self.dnn_model = dnn_model
         self.G_t = G_t
-        self.reliability = uniform(0.6, 0.9)
+        self.reliability = uniform(MIN_EDGE_RELIABILITY, MAX_EDGE_RELIABILITY)
         self.h_observations = []
         self.observations = []
         self.id = EdgeServer.count
